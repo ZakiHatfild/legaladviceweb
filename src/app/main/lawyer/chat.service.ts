@@ -193,16 +193,15 @@ export class ChatService implements Resolve<any>
      * @param dialog
      * @returns {Promise<any>}
      */
-    updateDialog(requestId, message): Promise<any>
+    updateDialog(message): Promise<any>
     {
         return new Promise((resolve, reject) => {
 
             var data = {
-                requestId: requestId,
                 reply: message
             };
 
-            this._httpClient.post('replies?requestId=' + data.requestId + '&reply=' + data.reply, null)
+            this._httpClient.post('replies?reply=' + data.reply, null)
                 .subscribe(updatedChat => {
                     resolve(updatedChat);
                 }, reject);

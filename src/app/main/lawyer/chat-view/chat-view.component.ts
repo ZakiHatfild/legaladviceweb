@@ -74,12 +74,6 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewInit
                             this.dialog = new Array();
                             this.messages = chatData.dialog;
 
-                            console.log(this.messages.lastQuestionSimilarReply)
-                            if (this.messages.lastQuestionSimilarReply && !this.replyForm.form.value.message) {
-                                //document.getElementById("INSERTHERE").value = this.messages.lastQuestionSimilarReply;
-                                this.replyForm.form.setValue(this.messages.lastQuestionSimilarReply);
-                            }
-
                             this.messages.requests.forEach(element => {
 
                                 let message2 = {
@@ -98,6 +92,14 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewInit
                                 this.dialog.push(message);
                             }
                             });
+
+                            if (this.messages.lastQuestionSimilarReply && !this.replyForm.form.value.message && !this.dialog[this.dialog.length-1].reply) {
+                                //document.getElementById("INSERTHERE").value = this.messages.lastQuestionSimilarReply;
+                                this.replyForm.form.setValue({'message': this.messages.lastQuestionSimilarReply});
+                            }
+                            if (this.replyForm.form.value.message == this.dialog[this.dialog.length-1].reply) {
+                                this.replyForm.reset();
+                            }
                         }
                     this.readyToReply();
                 }
@@ -110,12 +112,6 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewInit
                     {
                         this.dialog = new Array();
                         this.messages = dialog[0];
-
-                        console.log(this.messages.lastQuestionSimilarReply)
-                        if (this.messages.lastQuestionSimilarReply && !this.replyForm.form.value.message) {
-                            //document.getElementById("INSERTHERE").value = this.messages.lastQuestionSimilarReply;
-                            this.replyForm.form.setValue(this.messages.lastQuestionSimilarReply);
-                        }
 
                         this.messages.requests.forEach(element => {
 
@@ -137,6 +133,13 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewInit
                         }
     
                         });
+                        if (this.messages.lastQuestionSimilarReply && !this.replyForm.form.value.message && !this.dialog[this.dialog.length-1].reply) {
+                            //document.getElementById("INSERTHERE").value = this.messages.lastQuestionSimilarReply;
+                            this.replyForm.form.setValue({'message': this.messages.lastQuestionSimilarReply});
+                        }
+                        if (this.replyForm.form.value.message == this.dialog[this.dialog.length-1].reply) {
+                            this.replyForm.reset();
+                        }
                         this.readyToReply();
                     }
                 });
@@ -274,7 +277,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewInit
         this.dialog.push(message);
 
         // Update the server
-        this._chatService.updateDialog(this.selectedChat.chatId, this.replyForm.form.value.message).then(response => {
+        this._chatService.updateDialog(this.replyForm.form.value.message).then(response => {
             this.readyToReply();
         });
 
