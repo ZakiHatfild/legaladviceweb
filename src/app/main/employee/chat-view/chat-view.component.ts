@@ -22,6 +22,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewInit
     dialog: any;
     contact: any;
     replyInput: any;
+    messages: any;
 
     @ViewChild(FusePerfectScrollbarDirective)
     directiveScroll: FusePerfectScrollbarDirective;
@@ -58,21 +59,47 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewInit
     ngOnInit(): void
     {
         this.contact = {
+            id: 0,
             avatar: 'http://logobaker.ru/media/uploads/userapi/logos/51/400_300_1751-yurist.jpg',
             name: 'Lawyer',
             status: 'online'
         };
 
-        this.user = this._chatService.user;
-        this._chatService.onChatSelected
+        this.user = JSON.parse(localStorage.getItem('currentUser'));
+
+        this.dialog = new Array();
+        
+        this._chatService.onDialogChanged
             .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe(chatData => {
-                if ( chatData )
-                {
-                    this.dialog = chatData.dialog;
-                    this.readyToReply();
-                }
-            });
+                .subscribe(dialog => {
+                    if ( dialog )
+                    {
+                        this.dialog = new Array();
+                        this.messages = dialog;
+                 
+                        this.messages.requests.forEach(element => {
+                            
+                            let message2 = {
+                                who    : element.fromUserId,
+                                message: element.question,
+                                time   : new Date(element.questionDateTime)
+                            };
+                            this.dialog.push(message2);
+
+                            if (element.reply) {
+                            let message = {
+                                who    : 0,
+                                message: element.reply,
+                                time   : new Date(element.replyDateTime)
+                            };
+                            
+                            this.dialog.push(message);
+                        }
+ 
+                        });
+                        this.readyToReply();
+                    }
+                });
     }
 
     /**
@@ -198,12 +225,12 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewInit
         // Add the message to the chat
         this.dialog.push(message);
 
-        // Reset the reply form
-        this.replyForm.reset();
-
         // Update the server
-        this._chatService.updateDialog(message).then(response => {
+        this._chatService.updateDialog(this.replyForm.form.value.message).then(response => {
             this.readyToReply();
         });
+
+         // Reset the reply form
+         this.replyForm.reset();
     }
 }

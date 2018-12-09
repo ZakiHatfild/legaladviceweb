@@ -115,16 +115,16 @@
             <div *ngIf="user.chatList">
                 <button mat-button class="contact"
                         *ngFor="let chat of user.chatList | filter: searchText"
-                        (click)="getChat(chat.contactId)" ngClass="{'unread':contact.unread}"
+                        (click)="getChat(chat.id)" ngClass="{'unread':contact.unread}"
                         [@animate]="{value:'*',params:{y:'100%'}}">
 
                     <div fxLayout="row" fxLayoutAlign="start center">
 
                         <div class="avatar-wrapper" fxFlex="0 1 auto" fxLayoutAlign="center center">
-                            <img [src]="contacts | getById:chat.contactId:'avatar'"
+                            <img [src]="contacts | getById:chat.id:'avatar'"
                                 class="avatar"
-                                alt="{{contacts | getById:chat.contactId:'name'}}"/>
-                            <mat-icon class="s-16 status" [ngClass]="contacts | getById:chat.contactId:'status'"></mat-icon>
+                                alt="{{contacts | getById:chat.id:'name'}}"/>
+                            <mat-icon class="s-16 status" [ngClass]="contacts | getById:chat.id:'status'"></mat-icon>
                         </div>
 
                         <div fxLayout="row" fxFlex>

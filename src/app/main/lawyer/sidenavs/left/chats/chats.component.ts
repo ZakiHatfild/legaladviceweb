@@ -60,10 +60,11 @@ export class ChatChatsSidenavComponent implements OnInit, OnDestroy
         this.user = this._chatService.user;
         this.contacts = this._chatService.contacts;
 
-        this._chatService.onUserUpdated
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe(updatedUser => {
-                this.user = updatedUser;
+        this._chatService.onContactsChanged
+        .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(contacts => {
+                this.contacts = contacts;
+                this.user.chatList = this.contacts;
             });
     }
 

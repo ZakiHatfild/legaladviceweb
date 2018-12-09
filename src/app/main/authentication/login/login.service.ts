@@ -25,16 +25,11 @@ export class LoginService
                 remember: rememberMe
             };
 
-            this._httpClient.post('user/login', model)	
+            this._httpClient.post('login', model)	
                 .subscribe((response: any) => {
                     var buf = response.json()
-                    var tempObj = new Object();
-
-                    if (buf) {
-                        localStorage.setItem('currentUser', JSON.stringify(new Profile(buf)));
-                    }
-                    
-                    resolve(buf);
+  
+                    resolve(new Profile(buf));
                     
                 }, reject);
 

@@ -62,7 +62,7 @@
         <div class="chat-messages">
 
             <!-- MESSAGE -->
-            <div *ngFor="let message of dialog; let i = index" class="message-row"
+            <div style="padding-top: 25px;" *ngFor="let message of dialog; let i = index" class="message-row"
                  [ngClass]="{
                             'me': message.who === user.id,
                             'contact': message.who !== user.id,
@@ -100,7 +100,7 @@
                   fxFlex fxLayout="row" fxLayoutAlign="start center">
 
                 <mat-form-field class="message-text" fxFlex floatLabel="never" appearance="standard">
-                    <textarea matInput #replyInput placeholder="Type your message"
+                    <textarea id="INSERTHERE" matInput #replyInput placeholder="Type your message"
                               ngModel name="message" [rows]="1" [matTextareaAutosize]="true"></textarea>
                 </mat-form-field>
 

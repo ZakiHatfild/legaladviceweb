@@ -12,10 +12,12 @@ export class ChatService implements Resolve<any>
     user: any;
     onChatSelected: BehaviorSubject<any>;
     onContactSelected: BehaviorSubject<any>;
+    onDialogChanged: Subject<any>;
     onChatsUpdated: Subject<any>;
     onUserUpdated: Subject<any>;
     onLeftSidenavViewChanged: Subject<any>;
     onRightSidenavViewChanged: Subject<any>;
+    onContactsChanged: Subject<any>;
 
     /**
      * Constructor
@@ -33,6 +35,73 @@ export class ChatService implements Resolve<any>
         this.onUserUpdated = new Subject();
         this.onLeftSidenavViewChanged = new Subject();
         this.onRightSidenavViewChanged = new Subject();
+        this.onDialogChanged = new Subject();
+        this.onContactsChanged = new Subject();
+    }
+
+    getDialog(chatId) {
+        let user = JSON.parse(localStorage.getItem('currentUser'));
+        var action = new Promise((resolve, reject) => {
+            this._httpClient.get('requests?userId=' + user.id)
+                .subscribe(dialog => {
+                    resolve(dialog.json());
+                }, reject);
+        });
+
+        Promise.all([
+            action
+        ]).then(
+            (dialog: any) => {
+                
+                dialog[0].requests = dialog[0].requests.filter(el => { return el.fromUserId == chatId});
+                return dialog[0];
+            }
+        );
+    }
+
+    dialogChanges() {
+        setInterval(() => {
+            var action = new Promise((resolve, reject) => {
+                this._httpClient.get('requests?userId=' + this.user.id)
+                    .subscribe(dialog => {
+                        let data = dialog.json(); 
+                        resolve(data);
+                    }, reject);
+            });
+
+            Promise.all([
+                action
+            ]).then(
+                (dialog: any) => {
+                    let ids = new Array();
+                    
+                    if (!dialog)
+                    return;
+
+                    this.contacts = new Array();
+
+                    dialog[0].requests.map(element => {
+                        ids.push(element.fromUserId)
+                        return element;
+                    });
+                    
+                    let idSet = (ids) => ids.filter((v,i) => ids.indexOf(v) === i);
+                    idSet(ids).forEach(el => {
+                        let contact = {
+                            id: el,
+                            name: dialog[0].requests.find(elem => {return elem.fromUserId == el}).fromUser.name,
+                            avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Oleg_Zherebtsov.jpg/266px-Oleg_Zherebtsov.jpg',
+                            status: 'online'
+                        }
+
+                        this.contacts.push(contact);
+                    });
+ 
+                    this.onContactsChanged.next(this.contacts);
+                    this.onDialogChanged.next(dialog);
+                }
+            );
+        }, 3000)
     }
 
     /**
@@ -47,7 +116,8 @@ export class ChatService implements Resolve<any>
         return new Promise((resolve, reject) => {
             Promise.all([
                 this.getContacts(),
-                this.getUser()
+                this.getUser(),
+                this.dialogChanges()
             ]).then(
                 ([contacts, user]) => {
                     this.contacts = contacts;
@@ -72,34 +142,19 @@ export class ChatService implements Resolve<any>
             return item.contactId === contactId;
         });
 
-        // Create new chat, if it's not created yet.
-        if ( !chatItem )
-        {
-            this.createNewChat(contactId).then((newChats) => {
-                this.getChat(contactId);
-            });
-            return;
-        }
-
         return new Promise((resolve, reject) => {
-            this._httpClient.get('chat-chats/' + chatItem.id)
-                .subscribe((response: any) => {
-                    const chat = response;
 
-                    const chatContact = this.contacts.find((contact) => {
-                        return contact.id === contactId;
-                    });
+            const chatContact = this.contacts.find((contact) => {
+                return contact.id === contactId;
+            });
 
-                    const chatData = {
-                        chatId : chat.id,
-                        dialog : chat.dialog,
-                        contact: chatContact
-                    };
-
-                    this.onChatSelected.next({...chatData});
-
-                }, reject);
-
+            var dialog = this.getDialog(contactId);
+            var chatDat = {
+                chatId: contactId,
+                dialog: dialog,
+                contact: chatContact
+            }
+            this.onChatSelected.next({...chatDat});
         });
 
     }
@@ -110,49 +165,6 @@ export class ChatService implements Resolve<any>
      * @param contactId
      * @returns {Promise<any>}
      */
-    createNewChat(contactId): Promise<any>
-    {
-        return new Promise((resolve, reject) => {
-
-            const contact = this.contacts.find((item) => {
-                return item.id === contactId;
-            });
-
-            const chatId = FuseUtils.generateGUID();
-
-            const chat = {
-                id    : chatId,
-                dialog: []
-            };
-
-            const chatListItem = {
-                contactId      : contactId,
-                id             : chatId,
-                lastMessageTime: '2017-02-18T10:30:18.931Z',
-                name           : contact.name,
-                unread         : null
-            };
-
-            // Add new chat list item to the user's chat list
-            this.user.chatList.push(chatListItem);
-
-            // Post the created chat
-            this._httpClient.post('chat-chats', {...chat})
-                .subscribe((response: any) => {
-
-                    // Post the new the user data
-                    this._httpClient.post('chat-user/' + this.user.id, this.user)
-                        .subscribe(newUserData => {
-
-                            // Update the user data from server
-                            this.getUser().then(updatedUser => {
-                                this.onUserUpdated.next(updatedUser);
-                                resolve(updatedUser);
-                            });
-                        });
-                }, reject);
-        });
-    }
 
     /**
      * Select contact
@@ -181,16 +193,16 @@ export class ChatService implements Resolve<any>
      * @param dialog
      * @returns {Promise<any>}
      */
-    updateDialog(chatId, message): Promise<any>
+    updateDialog(requestId, message): Promise<any>
     {
         return new Promise((resolve, reject) => {
 
-            const newData = {
-                id    : chatId,
-                message: message
+            var data = {
+                requestId: requestId,
+                reply: message
             };
 
-            this._httpClient.post('chat-chats/' + chatId, newData)
+            this._httpClient.post('replies?requestId=' + data.requestId + '&reply=' + data.reply, null)
                 .subscribe(updatedChat => {
                     resolve(updatedChat);
                 }, reject);

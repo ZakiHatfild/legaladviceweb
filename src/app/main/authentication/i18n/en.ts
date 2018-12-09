@@ -11,7 +11,8 @@ export const locale = {
             'PASSWORD'                        : 'Password',
             'REMEMBER_ME'                     : 'Remember Me',
             'LOGIN_UP'                        : 'LOGIN',
-            'LOGIN_ERROR'                     : 'Email or password are invalid'
+            'LOGIN_ERROR'                     : 'Email or password are invalid',
+            'SUCCESS'                         : 'Success!'
         }
     }
 };

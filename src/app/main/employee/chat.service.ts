@@ -8,11 +8,10 @@ import { FuseUtils } from '@fuse/utils';
 @Injectable()
 export class ChatService implements Resolve<any>
 {
-    contacts: any[];
-    chats: any[];
     user: any;
     onChatSelected: BehaviorSubject<any>;
     onContactSelected: BehaviorSubject<any>;
+    onDialogChanged: Subject<any>;
     onChatsUpdated: Subject<any>;
     onUserUpdated: Subject<any>;
     onLeftSidenavViewChanged: Subject<any>;
@@ -30,6 +29,7 @@ export class ChatService implements Resolve<any>
         // Set the defaults
         this.onChatSelected = new BehaviorSubject(null);
         this.onContactSelected = new BehaviorSubject(null);
+        this.onDialogChanged = new Subject();
         this.onChatsUpdated = new Subject();
         this.onUserUpdated = new Subject();
         this.onLeftSidenavViewChanged = new Subject();
@@ -47,17 +47,56 @@ export class ChatService implements Resolve<any>
     {
         return new Promise((resolve, reject) => {
             Promise.all([
-                this.getUser()
+                this.getUser(),
+                this.getDialog()
             ]).then(
-                ([contacts, chats, user]) => {
-                    this.contacts = contacts;
-                    this.chats = chats;
+                ([user, dialog]) => {
                     this.user = user;
+                    this.dialogChanges();
                     resolve();
                 },
                 reject
             );
         });
+    }
+
+    getDialog() {
+        let user = JSON.parse(localStorage.getItem('currentUser'));
+        var action = new Promise((resolve, reject) => {
+            this._httpClient.get('requests?userId=' + user.id)
+                .subscribe(dialog => {
+                    resolve(dialog.json());
+                }, reject);
+        });
+
+        Promise.all([
+            action
+        ]).then(
+            ([dialog]) => {
+                
+                this.onDialogChanged.next(dialog);
+            }
+        );
+    }
+
+    dialogChanges() {
+        setInterval(() => {
+            var action = new Promise((resolve, reject) => {
+                this._httpClient.get('requests?userId=' + this.user.id)
+                    .subscribe(dialog => {
+                        resolve(dialog.json());
+                    }, reject);
+            });
+
+            Promise.all([
+                action
+            ]).then(
+                ([dialog]) => {
+                    
+                    this.onDialogChanged.next(dialog);
+                }
+            );
+        }, 1000)
     }
 
     /**
@@ -70,8 +109,11 @@ export class ChatService implements Resolve<any>
     updateDialog(message): Promise<any>
     {
         return new Promise((resolve, reject) => {
-
-            this._httpClient.post('chat-chats', message)
+            var data = {
+                userId: this.user.id,
+                q: message
+            };
+            this._httpClient.post('questions?userId=' + data.userId + '&q=' + data.q, null)
                 .subscribe(updatedChat => {
                     resolve(updatedChat);
                 }, reject);

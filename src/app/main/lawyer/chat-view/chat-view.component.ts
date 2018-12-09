@@ -21,6 +21,7 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewInit
     contact: any;
     replyInput: any;
     selectedChat: any;
+    messages: any;
 
     @ViewChild(FusePerfectScrollbarDirective)
     directiveScroll: FusePerfectScrollbarDirective;
@@ -56,7 +57,10 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewInit
      */
     ngOnInit(): void
     {
-        this.user = this._chatService.user;
+        this.user = JSON.parse(localStorage.getItem('currentUser'));
+
+        this.dialog = new Array();
+
         this._chatService.onChatSelected
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(chatData => {
@@ -64,10 +68,78 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewInit
                 {
                     this.selectedChat = chatData;
                     this.contact = chatData.contact;
-                    this.dialog = chatData.dialog;
+
+                    if ( chatData.dialog )
+                        {
+                            this.dialog = new Array();
+                            this.messages = chatData.dialog;
+
+                            console.log(this.messages.lastQuestionSimilarReply)
+                            if (this.messages.lastQuestionSimilarReply && !this.replyForm.form.value.message) {
+                                //document.getElementById("INSERTHERE").value = this.messages.lastQuestionSimilarReply;
+                                this.replyForm.form.setValue(this.messages.lastQuestionSimilarReply);
+                            }
+
+                            this.messages.requests.forEach(element => {
+
+                                let message2 = {
+                                    who    : element.fromUserId,
+                                    message: element.question,
+                                    time   : new Date(element.questionDateTime)
+                                };
+                                this.dialog.push(message2);
+
+                                if (element.reply) {
+                                let message = {
+                                    who    : 0,
+                                    message: element.reply,
+                                    time   : new Date(element.replyDateTime)
+                                };
+                                this.dialog.push(message);
+                            }
+                            });
+                        }
                     this.readyToReply();
                 }
             });
+
+            this._chatService.onDialogChanged
+            .pipe(takeUntil(this._unsubscribeAll))
+                .subscribe(dialog => {
+                    if ( dialog )
+                    {
+                        this.dialog = new Array();
+                        this.messages = dialog[0];
+
+                        console.log(this.messages.lastQuestionSimilarReply)
+                        if (this.messages.lastQuestionSimilarReply && !this.replyForm.form.value.message) {
+                            //document.getElementById("INSERTHERE").value = this.messages.lastQuestionSimilarReply;
+                            this.replyForm.form.setValue(this.messages.lastQuestionSimilarReply);
+                        }
+
+                        this.messages.requests.forEach(element => {
+
+                            let message2 = {
+                                who    : element.fromUserId,
+                                message: element.question,
+                                time   : new Date(element.questionDateTime)
+                            };
+                            this.dialog.push(message2);
+
+                            if (element.reply) {
+                             let message = {
+                                who    : 0,
+                                message: element.reply,
+                                time   : new Date(element.replyDateTime)
+                            };
+
+                            this.dialog.push(message);
+                        }
+    
+                        });
+                        this.readyToReply();
+                    }
+                });
     }
 
     /**
@@ -201,12 +273,11 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewInit
         // Add the message to the chat
         this.dialog.push(message);
 
-        // Reset the reply form
-        this.replyForm.reset();
-
         // Update the server
-        this._chatService.updateDialog(this.selectedChat.chatId, this.dialog).then(response => {
+        this._chatService.updateDialog(this.selectedChat.chatId, this.replyForm.form.value.message).then(response => {
             this.readyToReply();
         });
+
+        this.replyForm.reset();
     }
 }
