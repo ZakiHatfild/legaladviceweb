@@ -1,0 +1,124 @@
+<!-- CHAT -->
+<div class="chat" fxFlex fxLayout="column">
+
+    <!-- CHAT TOOLBAR -->
+    <mat-toolbar class="chat-toolbar">
+
+        <div fxFlex fxLayout="row" fxLayoutAlign="space-between center">
+
+            <div fxLayout="row" fxLayoutAlign="start center">
+
+                <!-- RESPONSIVE CHATS BUTTON-->
+                <button mat-icon-button fxHide.gt-md class="responsive-chats-button mr-16"
+                        fuseMatSidenavToggler="chat-left-sidenav"
+                        aria-label="chats button">
+                    <mat-icon>chat</mat-icon>
+                </button>
+                <!-- / RESPONSIVE CHATS BUTTON-->
+
+                <!-- CHAT CONTACT-->
+                <div class="chat-contact" fxLayout="row" fxLayoutAlign="start center"
+                     fuseMatSidenavToggler="chat-right-sidenav">
+
+                    <div class="avatar-wrapper">
+
+                        <img [src]="contact.avatar"
+                             class="avatar"
+                             alt="{{contact.name}}"/>
+
+                        <mat-icon class="s-16 status"
+                                  [ngClass]="contact.status">
+                        </mat-icon>
+                    </div>
+
+                    <div class="chat-contact-name">
+                        {{contact.name}}
+                    </div>
+
+                </div>
+                <!-- / CHAT CONTACT-->
+            </div>
+
+        </div>
+    </mat-toolbar>
+    <!-- / CHAT TOOLBAR -->
+
+    <!-- CHAT CONTENT -->
+    <div id="chat-content" fxFlex="1 1 auto"  fusePerfectScrollbar>
+
+        <!-- CHAT MESSAGES -->
+        <div class="chat-messages">
+
+            <!-- MESSAGE -->
+            <div *ngIf="dialog && dialog.length > 0">
+                <div *ngFor="let message of dialog; let i = index" class="message-row"
+                    [ngClass]="{
+                                'me': message.who === user.id,
+                                'contact': message.who !== user.id,
+                                'first-of-group': isFirstMessageOfGroup(message, i),
+                                'last-of-group': isLastMessageOfGroup(message, i)
+                                }">
+
+                    <img *ngIf="shouldShowContactAvatar(message, i)"
+                        src="{{contact.avatar}}"
+                        class="avatar">
+
+                    <div class="bubble">
+                        <div class="message">{{message.message}}</div>
+                        <div class="time secondary-text">{{message.time | date:'short'}}</div>
+                    </div>
+
+                </div>
+            </div>
+            <!-- / MESSAGE -->
+
+            <div *ngIf="!dialog || dialog.length ==0" fxFlex fxLayout="column" fxLayoutAlign="center center">
+                <div class="big-circle mat-elevation-z6 app-logo" fxLayout="column" fxLayoutAlign="center center"
+                    [@animate]="{value:'*',params:{delay:'50ms',scale:'0.2'}}">
+
+                    <mat-icon class="s-64 s-md-128 mat-accent">chat</mat-icon>
+
+                </div>
+
+                <span class="app-message" [@animate]="{value:'*',params:{delay:'200ms',y:'50px'}}">
+                    Send A Message To Start A Conversation
+                </span>
+
+            </div>
+
+        </div>
+        <!-- CHAT MESSAGES -->
+
+    </div>
+    <!-- / CHAT CONTENT -->
+
+    <!-- CHAT FOOTER -->
+    <div class="chat-footer" fxFlex="0 0 auto" fxLayout="column">
+
+        <!-- REPLY FORM -->
+        <div class="reply-form" fxFlex="0 0 auto" fxLayout="row" fxLayoutAlign="center center">
+
+            <form #replyForm="ngForm"
+                  (ngSubmit)="reply($event)"
+                  (keydown.enter)="reply($event)"
+                  fxFlex fxLayout="row" fxLayoutAlign="start center">
+
+                <mat-form-field class="message-text" fxFlex floatLabel="never" appearance="standard">
+                    <textarea matInput #replyInput placeholder="Type your message"
+                              ngModel name="message" [rows]="1" [matTextareaAutosize]="true"></textarea>
+                </mat-form-field>
+
+                <button class="send-message-button" mat-icon-button type="submit" aria-label="Send message">
+                    <mat-icon class="secondary-text">send</mat-icon>
+                </button>
+
+            </form>
+
+        </div>
+        <!-- / REPLY FORM -->
+
+    </div>
+    <!-- / CHAT FOOTER-->
+
+</div>
+<!-- / CHAT -->

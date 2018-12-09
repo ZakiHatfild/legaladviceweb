@@ -1,0 +1,19 @@
+@import "src/@fuse/scss/fuse";
+
+error-snackbar {
+	
+	.snackbar-content {
+
+		.mat-spinner circle {
+		  	stroke: #039be5 !important;
+		}
+
+		.snackbar-text {
+			font-size: 18px;
+		}
+
+		.logo-icon {
+			font-size: 35px;
+		}
+	}
+}

@@ -1,0 +1,59 @@
+<div id="login" fxLayout="column">
+
+    <div id="login-form-wrapper" fxLayout="column" fxLayoutAlign="center center">
+
+        <div id="login-form" [@animate]="{value:'*',params:{duration:'300ms',y:'100px'}}">
+
+            <div class="logo">
+                <img src="assets/images/logos/logo.png">
+            </div>
+
+            <div class="title">{{ 'AUTH.LOGIN_YOUR_ACCOUNT' | translate }}</div>
+
+            <form name="loginForm" [formGroup]="loginForm" novalidate>
+
+                <mat-form-field>
+                    <input matInput placeholder="{{ 'AUTH.EMAIL' | translate }}" formControlName="email">
+                    <mat-error *ngIf="loginForm.get('email').hasError('required')">
+                        {{ 'AUTH.EMAIL_REQUIRED' | translate }}
+                    </mat-error>
+                    <mat-error
+                        *ngIf="!loginForm.get('email').hasError('required') &&
+                                loginForm.get('email').hasError('email')">
+                        {{ 'AUTH.INVALID_EMAIL' | translate }}
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field>
+                    <input matInput type="password" placeholder="{{ 'AUTH.PASSWORD' | translate }}" formControlName="password">
+                    <mat-error>
+                        {{ 'AUTH.PASSWORD_REQUIRED' | translate }}
+                    </mat-error>
+                </mat-form-field>
+
+                <div class="remember-forgot-password" fxLayout="row" fxLayout.xs="column"
+                     fxLayoutAlign="space-between center">
+                    <mat-checkbox formControlName="rememberMe" class="remember-me" aria-label="Remember Me">
+                        {{ 'AUTH.REMEMBER_ME' | translate }}
+                    </mat-checkbox>
+                </div>
+
+                <button mat-raised-button color="accent" class="submit-button" aria-label="LOG IN"
+                        (click)="login()"
+                        [disabled]="loginForm.invalid">
+                    {{ 'AUTH.LOGIN_UP' | translate }}
+                </button>
+
+                <auth-message  
+                     [successMessage]="('AUTH.SUCCESS' | translate)"
+                     [errorMessage]="('AUTH.LOGIN_ERROR' | translate)"
+                     [status]="authMessageStatus">
+                </auth-message>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
